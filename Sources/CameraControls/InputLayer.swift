@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct InputLayerModifier: ViewModifier {
-    @GestureState private var dragAmount = CGSize.zero
-    
     func body(content: Content) -> some View {
         content
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
-                    .updating($dragAmount) { value, state, _ in
-                        state = value.translation
-                        PanGestureSystem.panState = [Float(state.width),
-                                                     Float(state.height)]
+                    .onChanged { value in
+                        PanGestureSystem.panState = .changed(value.translation)
+                    }
+                    .onEnded { value in
+                        PanGestureSystem.panState = .ended(value.translation)
                     }
             )
     }
