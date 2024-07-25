@@ -42,9 +42,6 @@ public class PanGestureSystem: System {
                 Float(lastOffset.height - offset.height)
             ]
             
-            print(lastState)
-            print(PanGestureSystem.panState)
-            
             if case .ended = PanGestureSystem.panState {
                 PanGestureSystem.panState = .inactive
             }
