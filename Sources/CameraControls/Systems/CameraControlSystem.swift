@@ -18,31 +18,36 @@ public struct CameraControlSystem: @preconcurrency System {
     public init(scene: Scene) {}
     
     public func update(context: SceneUpdateContext) {
-        if PanGestureSystem.value == .zero {
-            return
-        }
-        
         for entity in context.entities(matching: query,
                                        updatingSystemWhen: .rendering) {
             let component = entity.components[OrbitCameraComponent.self]
             guard let component else { continue }
-
-            let yaw: simd_quatf = {
-                var angle = entity.transform.eulerAngles.yaw
-                angle += PanGestureSystem.value.x * component.rotationSpeed
-                return simd_quatf(angle: angle, axis: [0, 1, 0])
-            }()
-
-            let pitch: simd_quatf = {
-                var angle = entity.transform.eulerAngles.pitch
-                angle += PanGestureSystem.value.y * component.rotationSpeed
-                angle = min(.pi / 1.99, angle)
-                angle = max(.pi / -1.99, angle)
-                return simd_quatf(angle: angle, axis: [1, 0, 0])
-            }()
             
-            entity.transform.rotation = simd_mul(yaw, pitch)
+            rotate(entity: entity, value: [
+                PanGestureSystem.value.x * component.rotationSpeed,
+                PanGestureSystem.value.y * component.rotationSpeed
+            ])
         }
+    }
+    
+    private func rotate(entity: Entity, value: SIMD2<Float>) {
+        guard value != .zero else { return }
+        
+        let yaw: simd_quatf = {
+            var angle = entity.transform.eulerAngles.yaw
+            angle += value.x
+            return simd_quatf(angle: angle, axis: [0, 1, 0])
+        }()
+
+        let pitch: simd_quatf = {
+            var angle = entity.transform.eulerAngles.pitch
+            angle += value.y
+            angle = min(.pi / 1.99, angle)
+            angle = max(.pi / -1.99, angle)
+            return simd_quatf(angle: angle, axis: [1, 0, 0])
+        }()
+        
+        entity.transform.rotation = simd_mul(yaw, pitch)
     }
 }
 
